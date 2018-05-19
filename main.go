@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/girishramnani/gosync/gosync"
+	"github.com/girishramnani/gosync/pkg"
 )
 
 func main() {
-	config := gosync.ParseConfigFromCli()
+	config := pkg.ParseConfigFromCli()
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
-	uploader := gosync.NewS3BucketUploader(config.Bucket)
-	walker := gosync.NewWalker(uploader)
+	uploader := pkg.NewS3BucketUploader(config.Bucket)
+	walker := pkg.NewWalker(uploader)
 
 	ticker := time.NewTicker(time.Duration(config.PoolInteval) * time.Second)
 
