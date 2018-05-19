@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,9 +15,9 @@ type S3BucketUploader struct {
 	s3client *s3.S3
 }
 
-func NewS3BucketUploader(bucket string) *S3BucketUploader {
+func NewS3BucketUploader(bucket, awsProfile string) *S3BucketUploader {
 
-	session := makeSession("default")
+	session := makeSession(awsProfile)
 	s3client := s3.New(session)
 
 	return &S3BucketUploader{
@@ -56,8 +56,7 @@ func makeSession(profile string) *session.Session {
 		Profile: profile,
 	})
 	if err != nil {
-		fmt.Println("failed to create session,", err)
-		fmt.Println(err)
+		log.Println("[ERROR] failed to create session,", err)
 		os.Exit(1)
 	}
 

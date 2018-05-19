@@ -15,10 +15,16 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
-	uploader := pkg.NewS3BucketUploader(config.Bucket)
+	uploader := pkg.NewS3BucketUploader(config.Bucket, config.Profile)
 	walker := pkg.NewWalker(uploader)
 
 	ticker := time.NewTicker(time.Duration(config.PoolInteval) * time.Second)
+
+	go func() {
+		<-signalChan
+		log.Println("[INFO] Exiting")
+		os.Exit(0)
+	}()
 
 	// first run should be immediate
 	log.Println("[INFO] Syncing ", config.Directory)
@@ -27,19 +33,11 @@ func main() {
 		log.Println("[ERROR] ", err)
 	}
 	for {
-		select {
-		case <-ticker.C:
-			log.Println("[INFO] Syncing ", config.Directory)
-			err = filepath.Walk(config.Directory, walker.Walk)
-			if err != nil {
-				log.Println("[ERROR] ", err)
-			}
-			// do stuff
-		case <-signalChan:
-			ticker.Stop()
-			log.Println("[INFO] Exiting")
-			os.Exit(0)
-			break
+		<-ticker.C
+		log.Println("[INFO] Syncing ", config.Directory)
+		err = filepath.Walk(config.Directory, walker.Walk)
+		if err != nil {
+			log.Println("[ERROR] ", err)
 		}
 	}
 }
